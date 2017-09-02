@@ -2,6 +2,7 @@
 
 def get_first_item(li):
     """Return the first item from the list"""
+    print(li)
     pass
 
 def get_last_item(li):
