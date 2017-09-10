@@ -1,4 +1,6 @@
-import lists
+
+from io import open
+from tutorial import lists
 """Files tests simple file read related operations"""
 
 class SimpleFile(object):
@@ -9,9 +11,13 @@ class SimpleFile(object):
         TODO: reads the file by path and parse content into two
         dimension array (numbers)
         """
-        with open(file_path) as f:
-            for line in f:
-                self.numbers.append([int(x) for x in line.split()])
+        f = open(file_path, encoding='utf-8')
+        text = f.read()
+        lines = text.split('\n')
+        for line in lines:
+            if len(line) > 0:
+                parts = list(map(int, line.split(' ')))
+                self.numbers.append(parts)
 
     def get_mean(self, line_number):
         return lists.get_avg(self.numbers[line_number])
