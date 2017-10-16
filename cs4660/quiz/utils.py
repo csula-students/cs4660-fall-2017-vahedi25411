@@ -34,9 +34,13 @@ class Room(object):
         self.neighbors = neighbors
 
     def __str__(self):
-        return 'Room(id: {}, location: {}, neighbors:{})'.format(self.id, self.room_info,self.neighbors)
+        #return 'Room(id: {}, location: {}, neighbors:{})'.format(self.id, self.room_info,self.neighbors)
+        #return 'Room : {{ id: {}, location: {{ {} }}, neighbors:{{ {} }} }}'.format(self.id, self.room_info,self.neighbors)
+        return '{{ id: {}, location: {{ {} }}, neighbors:{{ {} }} }}'.format(self.id, self.room_info,self.neighbors)
     def __repr__(self):
-        return 'Room(id: {}, location: {}, neighbors:{})'.format(self.id, self.room_info,self.neighbors)
+        #return 'Room(id: {}, location: {}, neighbors:{})'.format(self.id, self.room_info,self.neighbors)
+        #return 'Room : {{ id: {}, location: {{ {} }}, neighbors:{{ {} }} }}'.format(self.id, self.room_info,self.neighbors)
+        return '{{ id: {}, location: {{ {} }}, neighbors:{{ {} }} }}'.format(self.id, self.room_info,self.neighbors)
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
@@ -47,3 +51,11 @@ class Room(object):
 
     def __hash__(self):
         return hash(self.id)
+
+class WeightedRoom(object):
+    def __init__(self, distance, room):
+        self.room = room
+        self.distance = distance
+    
+    def __lt__(self, other):
+        return self.distance < other.distance

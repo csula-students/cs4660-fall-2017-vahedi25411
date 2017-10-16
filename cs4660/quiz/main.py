@@ -7,9 +7,12 @@ TODO: implement BFS
 TODO: implement Dijkstra utilizing the path with highest effect number
 """
 
+import queue as QUEUE
 from quiz import utils
+from graph import graph as GRAPH
 import json
 import codecs
+import os
 
 # http lib import for Python 2 and 3: alternative 4
 try:
@@ -25,7 +28,24 @@ def get_state(room_id):
     get the room by its id and its neighbor
     """
     body = {'id': room_id}
-    return __json_request(GET_STATE_URL, body)
+
+    result = {}
+    file_name = room_id + ".json"
+    if not os.path.isfile(file_name):
+
+        result = __json_request(GET_STATE_URL, body)
+        print("*******")
+        print(result)
+
+        with open(file_name, 'w') as outfile:
+            json.dump(result, outfile)
+
+    else:
+        with open(file_name) as data_file:    
+            result = json.load(data_file)
+        pass
+    
+    return result
 
 def transition_state(room_id, next_room_id):
     """
@@ -53,80 +73,151 @@ def __get_room_info(body):
     
     room_info = utils.RoomInfo(body['location']['x'],body['location']['y'],body['location']['name'])
     
+    
     neighbors = []
     for item in body['neighbors']:
-        neighbors.append(__get_room_info(item))
+        new_room = __get_room_info(item)
+        neighbors.append(new_room)
+    
 
     room = utils.Room(body['id'],room_info,body['neighbors'])
 
     return room
 
-if __name__ == "__main__":
-    # Your code starts here
+def bfs(initial_node, dest_node):
+
+    #empty_room = get_state('7f3dc077574c013d98b2de8f735058b4')
+    #end_room = get_state('f1f131f647621a4be7c71292e79613f9')
+    empty_room = get_state(initial_node)
+    end_room = get_state(dest_node)
     
-    empty_room = get_state('7f3dc077574c013d98b2de8f735058b4')
-    end_room = get_state('f1f131f647621a4be7c71292e79613f9')
-    #print(empty_room)
-    
+    results = []
+    queue = []
+    visited = {}
+    parents = {}
+
+    queue = QUEUE.Queue()
 
     empty_room = __get_room_info(empty_room)
+    
     end_room = __get_room_info(end_room)
 
-
-    node_info = {}
-    visited = []
-    edges = []
-    queue = []
-    parents = {}
-    parent = None
-    find = False
-
-    queue.append(empty_room)
-
-    print(empty_room.id)
-    
-    parents[empty_room.id]=None
-    
-    while len(queue) > 0 and not find:
+    queue.put(empty_room)
+    room_finded = False
+    parents[empty_room.id] = None
+    while not queue.empty() and not room_finded:
         
-        room = queue.pop(0)
+        room = queue.get()
+        parent = room
+        visited[room.id] = True
+
+        for neighbor in room.neighbors:
+            if neighbor['id'] not in visited:
+                new_room = __get_room_info( get_state( neighbor['id'] ) )
+                parents[new_room.id] = parent
+                if new_room.id == end_room.id:
+                    room_finded = True
+                    break
+                queue.put(new_room)
+
+
+    current_room = end_room
+    total_hp = 0
+    while parents[current_room.id] is not None:
+        hp = __get_distance(parents[current_room.id],current_room)
+        results.append(parents[current_room.id].room_info.name + "(" + parents[current_room.id].id+ ") : "
+            + current_room.room_info.name + "(" + current_room.id + ")" + " : " + str( hp ))
+        total_hp += hp
+        current_room = parents[current_room.id]
+
+    results.reverse()
+    results.append("Total hp : " + str(total_hp))
+
+    for result in results:
+        print(result)
+
+
+def dijkstra_search(initial_node, dest_node):
+    results = []
+    queue = []
+    distance = {}
+    visited = {}
+    parents = {}
+
+    initial_room = get_state(initial_node)
+    dest_room = get_state(dest_node)
+
+    initial_room = __get_room_info(initial_room)
+    dest_room = __get_room_info(dest_room)
+    
+    queue = QUEUE.PriorityQueue()
+
+    distance[initial_room.id] = 0
+    parents[initial_room.id] = None
+
+    queue.put(utils.WeightedRoom(distance[initial_room.id],initial_room))
+
+    room_finded = False
+
+    while not queue.empty():
+        
+        weighted_room = queue.get()
+        room = weighted_room.room
 
         parent = room
+        visited[room.id] = True
 
-        if room not in visited:
+        for neighbor in room.neighbors:
+            neighbor_room = __get_room_info( get_state( neighbor['id'] ) )
+            cur_distance = __get_distance( parent, neighbor_room)
 
-            visited.append(room)
+            if neighbor_room.id not in visited:
 
-            neighbors = room.neighbors
-            
-            for neighbor in neighbors:
-                if neighbor not in visited and neighbor not in queue:
-
-                    parents[neighbor.id] = parent
-
-
-                    if neighbor==end_room:
-                        find = True
-                        break 
-                    else:
-                        queue.append(neighbor)
+                parents[neighbor_room.id] = parent
                 
-
-
+                distance[neighbor_room.id] = distance[parent.id] + cur_distance
+                visited[neighbor_room.id] = True
+                queue.put(utils.WeightedRoom(-1*distance[neighbor_room.id],neighbor_room))
+ 
     
-    current_node = end_room
+    
+    current_room = dest_room
+    #results.append(current_room.id)
+    total_hp = 0
+    while parents[current_room.id] is not None:
 
-    if find:        
-        while parents[current_node.id] is not None:
-            edges.append(parents[current_node.id]+" : "+current_node)
-            current_node = parents[current_node.id]
+        hp = __get_distance(parents[current_room.id],current_room)
+        results.append(parents[current_room.id].room_info.name + "(" + parents[current_room.id].id+ ") : "
+            + current_room.room_info.name + "(" + current_room.id + ")" + " : " + str( hp ))
+        total_hp += hp
+        #edges.append(parents[current_room.id].id)
+        current_room = parents[current_room.id]
+    
 
-    edges.reverse()
+    results.reverse()
+    results.append("Total hp : " + str(total_hp))
+
+    for result in results:
+        print(result)
+    
 
 
 
+def __get_distance( from_room, to_room):
 
+    distance = transition_state(from_room.id, to_room.id)
 
+    return int(distance['event']['effect'])
 
-
+if __name__ == "__main__":
+    # Your code starts here
+    print("BFS Result : ")
+    bfs('7f3dc077574c013d98b2de8f735058b4','f1f131f647621a4be7c71292e79613f9')
+    print("Dijkstra Result : ")
+    dijkstra_search('7f3dc077574c013d98b2de8f735058b4','f1f131f647621a4be7c71292e79613f9')
+    #print(get_state('b07dcf1aa04ff9dd480c7b2164b7fafb'))
+    #print("start :")
+    #print(dijkstra_search('7f3dc077574c013d98b2de8f735058b4','f1f131f647621a4be7c71292e79613f9'))
+    #print("end :")
+    
 
