@@ -86,8 +86,6 @@ def __get_room_info(body):
 
 def bfs(initial_node, dest_node):
 
-    #empty_room = get_state('7f3dc077574c013d98b2de8f735058b4')
-    #end_room = get_state('f1f131f647621a4be7c71292e79613f9')
     empty_room = get_state(initial_node)
     end_room = get_state(dest_node)
     
@@ -182,7 +180,7 @@ def dijkstra_search(initial_node, dest_node):
     
     
     current_room = dest_room
-    #results.append(current_room.id)
+
     total_hp = 0
     while parents[current_room.id] is not None:
 
@@ -190,7 +188,7 @@ def dijkstra_search(initial_node, dest_node):
         results.append(parents[current_room.id].room_info.name + "(" + parents[current_room.id].id+ ") : "
             + current_room.room_info.name + "(" + current_room.id + ")" + " : " + str( hp ))
         total_hp += hp
-        #edges.append(parents[current_room.id].id)
+        
         current_room = parents[current_room.id]
     
 
@@ -215,9 +213,6 @@ if __name__ == "__main__":
     bfs('7f3dc077574c013d98b2de8f735058b4','f1f131f647621a4be7c71292e79613f9')
     print("Dijkstra Result : ")
     dijkstra_search('7f3dc077574c013d98b2de8f735058b4','f1f131f647621a4be7c71292e79613f9')
-    #print(get_state('b07dcf1aa04ff9dd480c7b2164b7fafb'))
-    #print("start :")
-    #print(dijkstra_search('7f3dc077574c013d98b2de8f735058b4','f1f131f647621a4be7c71292e79613f9'))
-    #print("end :")
+
     
 
