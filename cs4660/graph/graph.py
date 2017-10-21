@@ -96,15 +96,7 @@ def construct_graph_from_file(graph, file_path):
                 else:
 
                     first_node = Node(int(items[0]))
-                    if not first_node in mydic:       
-                        mydic[first_node] = []
-                        graph.add_node(first_node)
-
                     second_node = Node(int(items[1]))
-                    if not second_node in mydic:                        
-                        mydic[second_node] = []
-                        graph.add_node(second_node)
-
 
                     graph.add_edge(Edge(first_node, second_node, items[2]))
 
@@ -125,22 +117,9 @@ def construct_graph_from_file(graph, file_path):
                     number_of_nodes = int(items[0])
                     for i in range(0,number_of_nodes):
                         graph.add_node(Node(int(i)))
-                        mydic[i] = Node(i)
                 else:
-                    if not items[0] in mydic:
-                        first_node = Node(int(items[0]))
-                        mydic[items[0]] = first_node
-                        graph.add_node(first_node)
-                    else:
-                        first_node = mydic[items[0]]
-
-
-                    if not items[1] in mydic:
-                        second_node = Node(int(items[1]))
-                        mydic[items[1]] = second_node
-                        graph.add_node(Node(items[1]))
-                    else:
-                        second_node = mydic[items[1]]
+                    first_node = Node(int(items[0]))
+                    second_node = Node(int(items[1]))
 
                     graph.add_edge(Edge(first_node, second_node, items[2]))
 
@@ -261,6 +240,16 @@ class AdjacencyList(object):
             return False
         pass
 
+
+    def distance(self, node1, node2):
+        if not self.adjacent(node1, node2):
+            return None
+        edges = self.adjacency_list[node1]
+        for edge in edges:
+            if (edge.to_node == node2):
+                return edge.weight
+
+
 class AdjacencyMatrix(object):
     def __init__(self):
         # adjacency_matrix should be a two dimensions array of numbers that
@@ -271,7 +260,6 @@ class AdjacencyMatrix(object):
         self.nodes = []
 
     def adjacent(self, node_1, node_2):
-
         if self.adjacency_matrix[self.__get_node_index(node_1)][self.__get_node_index(node_2)]>0:
             return True
         else:
@@ -292,14 +280,22 @@ class AdjacencyMatrix(object):
         pass
 
     def add_node(self, node):
+
         if node in self.nodes:
             return False
         else:
             self.nodes.append(node)
+
+            for i in range(0,len(self.adjacency_matrix)):
+                self.adjacency_matrix[i].extend([0])
+
+            self.adjacency_matrix.extend([[0] * len(self.nodes)])  
+            
             return True            
         pass
 
     def remove_node(self, node):
+
         if node in self.nodes:
             row=-1
             for i in range(0,len(self.adjacency_matrix)):
@@ -332,6 +328,7 @@ class AdjacencyMatrix(object):
         pass
 
     def remove_edge(self, edge):
+
         if self.adjacency_matrix[self.__get_node_index(edge.from_node)][self.__get_node_index(edge.to_node)] == 0:
             return False
         else:
@@ -341,16 +338,27 @@ class AdjacencyMatrix(object):
         pass
 
     def __get_node_index(self, node):
+        """
         index=-1
 
         for i in range(0,len(self.nodes)):
             if self.nodes[i]==node:
                 index=i
+
         return index
-    
-        #return self.nodes.index(node)
+        """
+        return self.nodes.index(node)
         """helper method to find node index"""
         pass
+
+    def distance(self, node1, node2):
+        if not self.adjacent(node1, node2):
+            return None
+        node1_index = self.__get_node_index(node1)
+        node2_index = self.__get_node_index(node2)
+        if self.adjacency_matrix[node1_index][node2_index] == 0:
+            return None 
+        return self.adjacency_matrix[node1_index][node2_index]
 
 class ObjectOriented(object):
     """ObjectOriented defines the edges and nodes as both list"""
@@ -409,12 +417,6 @@ class ObjectOriented(object):
         pass
 
     def remove_edge(self, edge):
-        """
-        for ed in self.edges:
-            if ed.hash == edge.hash:
-                self.edges.remove(ed)
-            return True
-        """
         if edge in self.edges:  
             self.edges.remove(edge)
             return True      
@@ -422,4 +424,12 @@ class ObjectOriented(object):
             return False
 
         pass
+
+    def distance(self, node1, node2):
+        if not self.adjacent(node1, node2):
+            return None
+        for edge in self.edges:
+            if edge.from_node == node1 and edge.to_node == node2:
+                return edge.weight
+
 
